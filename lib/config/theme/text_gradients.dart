@@ -8,10 +8,7 @@ class TextGradients {
     return const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        AppColors.navyDark,
-        AppColors.blueLight,
-      ],
+      colors: [AppColors.navyDark, AppColors.blueLight],
     ).createShader(bounds);
   }
 
@@ -20,10 +17,7 @@ class TextGradients {
     return const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        AppColors.blueLight,
-        AppColors.mintLight,
-      ],
+      colors: [AppColors.blueLight, AppColors.mintLight],
     ).createShader(bounds);
   }
 
@@ -32,18 +26,12 @@ class TextGradients {
     return const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [
-        AppColors.mintLight,
-        AppColors.tealDark,
-      ],
+      colors: [AppColors.mintLight, AppColors.tealDark],
     ).createShader(bounds);
   }
 
   /// Widget de texto con gradiente primario
-  static Widget primaryGradientText(
-    String text, {
-    TextStyle? style,
-  }) {
+  static Widget primaryGradientText(String text, {TextStyle? style}) {
     return ShaderMask(
       shaderCallback: (bounds) => primaryGradient(bounds),
       child: Text(
@@ -57,10 +45,7 @@ class TextGradients {
   }
 
   /// Widget de texto con gradiente secundario
-  static Widget secondaryGradientText(
-    String text, {
-    TextStyle? style,
-  }) {
+  static Widget secondaryGradientText(String text, {TextStyle? style}) {
     return ShaderMask(
       shaderCallback: (bounds) => secondaryGradient(bounds),
       child: Text(
@@ -74,10 +59,7 @@ class TextGradients {
   }
 
   /// Widget de texto con gradiente de acento
-  static Widget accentGradientText(
-    String text, {
-    TextStyle? style,
-  }) {
+  static Widget accentGradientText(String text, {TextStyle? style}) {
     return ShaderMask(
       shaderCallback: (bounds) => accentGradient(bounds),
       child: Text(
@@ -91,10 +73,7 @@ class TextGradients {
   }
 
   /// Widget de texto destacado (highlight)
-  static Widget highlightText(
-    String text, {
-    TextStyle? style,
-  }) {
+  static Widget highlightText(String text, {TextStyle? style}) {
     return ShaderMask(
       shaderCallback: (bounds) => secondaryGradient(bounds),
       child: Text(
@@ -107,4 +86,3 @@ class TextGradients {
     );
   }
 }
-

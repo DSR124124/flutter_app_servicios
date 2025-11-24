@@ -19,10 +19,10 @@ class AppTheme {
         onError: AppColors.white,
         surface: AppColors.surface,
         onSurface: AppColors.textoContent,
-        surfaceVariant: AppColors.grayLighter,
+        surfaceContainerHighest: AppColors.grayLighter,
         onSurfaceVariant: AppColors.grayDark,
         outline: AppColors.border,
-        shadow: Colors.black.withOpacity(0.1),
+        shadow: Colors.black.withValues(alpha: 0.1),
       ),
       scaffoldBackgroundColor: AppColors.layoutMainBg,
       appBarTheme: const AppBarTheme(
@@ -47,9 +47,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.primaryContent,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -59,9 +57,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.grayLighter,
@@ -91,7 +87,7 @@ class AppTheme {
       ),
     );
   }
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -107,10 +103,10 @@ class AppTheme {
         onError: AppColors.white,
         surface: const Color(0xFF1E1E1E),
         onSurface: AppColors.white,
-        surfaceVariant: const Color(0xFF2A2A2A),
+        surfaceContainerHighest: const Color(0xFF2A2A2A),
         onSurfaceVariant: AppColors.grayLighter,
         outline: AppColors.grayMedium,
-        shadow: Colors.black.withOpacity(0.3),
+        shadow: Colors.black.withValues(alpha: 0.3),
       ),
       scaffoldBackgroundColor: AppColors.layoutFooterBg,
       appBarTheme: const AppBarTheme(
@@ -124,19 +120,14 @@ class AppTheme {
           backgroundColor: AppColors.blueLight,
           foregroundColor: AppColors.navyDark,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF2A2A2A),
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
 }
-
