@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../../../core/errors/app_exception.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -31,7 +32,10 @@ class AuthProvider extends ChangeNotifier {
       _logoutUseCase = logoutUseCase ?? LogoutUseCase(repository),
       _getCurrentUserUseCase =
           getCurrentUserUseCase ?? GetCurrentUserUseCase(repository) {
-    _bootstrap();
+    // Ejecutar bootstrap después del primer frame para evitar reconstrucciones durante build
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _bootstrap();
+    });
   }
 
   final AuthRepository _repository;
@@ -51,15 +55,15 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
 
   Future<void> _bootstrap() async {
-    _isLoading = true;
-    notifyListeners();
     try {
       _user = await _getCurrentUserUseCase();
       _error = null;
+      notifyListeners();
     } on AppException catch (e) {
       _error = e.message;
-    } finally {
-      _isLoading = false;
+      notifyListeners();
+    } catch (_) {
+      // Silenciar errores de bootstrap para no bloquear el inicio
       notifyListeners();
     }
   }

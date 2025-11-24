@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../config/theme/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
-import '../../../../shared/widgets/progress_spinner.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/usecases/get_perfil_info_usecase.dart';
@@ -54,6 +54,34 @@ class _DashboardViewState extends State<_DashboardView> {
     });
   }
 
+  Future<void> _handleLogout() async {
+    // Mostrar spinner de carga
+    AppGradientSpinner.showOverlay(
+      context,
+      message: 'Cerrando sesión...',
+    );
+
+    try {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.logout();
+
+      if (!mounted) return;
+
+      // Ocultar spinner
+      AppGradientSpinner.hideOverlay(context);
+    } catch (e) {
+      // Ocultar spinner en caso de error
+      if (mounted) {
+        AppGradientSpinner.hideOverlay(context);
+        AppToast.show(
+          context,
+          message: 'Error al cerrar sesión',
+          type: ToastType.error,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -75,9 +103,8 @@ class _DashboardViewState extends State<_DashboardView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              authProvider.logout();
-            },
+            onPressed: _handleLogout,
+            tooltip: 'Cerrar sesión',
           ),
         ],
       ),
@@ -134,17 +161,47 @@ class _DashboardViewState extends State<_DashboardView> {
             const SizedBox(height: 16),
             Expanded(
               child: dashboardProvider.isLoading
-                  ? const ProgressSpinner(message: AppStrings.loading)
-                  : dashboardProvider.error != null
-                  ? Center(
-                      child: Text(
-                        dashboardProvider.error!,
-                        style: const TextStyle(color: AppColors.error),
-                        textAlign: TextAlign.center,
+                  ? const Center(
+                      child: AppLoadingSpinner(
+                        message: 'Cargando información del perfil...',
                       ),
                     )
                   : dashboardProvider.perfil != null
                   ? PerfilInfoList(perfil: dashboardProvider.perfil!)
+                  : dashboardProvider.error != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            dashboardProvider.error!,
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: dashboardProvider.loadPerfil,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : dashboardProvider.isInitialLoading
+                  ? const Center(
+                      child: AppLoadingSpinner(
+                        message: 'Cargando información del perfil...',
+                      ),
+                    )
                   : const Center(child: Text(AppStrings.noData)),
             ),
           ],

@@ -7,18 +7,34 @@ import '../../domain/usecases/get_perfil_info_usecase.dart';
 class DashboardProvider extends ChangeNotifier {
   DashboardProvider({required GetPerfilInfoUseCase getPerfilInfoUseCase})
     : _getPerfilInfoUseCase = getPerfilInfoUseCase {
-    loadPerfil();
+    _loadPerfilSilently();
   }
 
   final GetPerfilInfoUseCase _getPerfilInfoUseCase;
 
   PerfilInfo? _perfil;
   bool _isLoading = false;
+  bool _isInitialLoading = true;
   String? _error;
 
   PerfilInfo? get perfil => _perfil;
   bool get isLoading => _isLoading;
+  bool get isInitialLoading => _isInitialLoading;
   String? get error => _error;
+
+  Future<void> _loadPerfilSilently() async {
+    // Carga inicial sin mostrar spinner modal
+    try {
+      _perfil = await _getPerfilInfoUseCase();
+    } on AppException catch (e) {
+      _error = e.message;
+    } catch (_) {
+      _error = AppException.unknown().message;
+    } finally {
+      _isInitialLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> loadPerfil() async {
     _isLoading = true;

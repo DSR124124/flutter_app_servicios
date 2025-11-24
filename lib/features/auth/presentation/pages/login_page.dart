@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../config/theme/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
-import '../../../../shared/widgets/progress_spinner.dart';
 import '../bloc/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -30,7 +30,11 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    ProgressSpinner.show(context, message: AppStrings.loading);
+    // Mostrar spinner de carga
+    AppGradientSpinner.showOverlay(
+      context,
+      message: 'Iniciando sesión...',
+    );
 
     try {
       final authProvider = context.read<AuthProvider>();
@@ -41,16 +45,17 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      // Cerrar el spinner antes de cualquier otra acción
-      Navigator.of(context, rootNavigator: true).pop();
+      // Ocultar spinner
+      AppGradientSpinner.hideOverlay(context);
 
       if (!success) {
         final message = authProvider.error ?? AppStrings.unknownError;
         AppToast.show(context, message: message, type: ToastType.error);
       }
     } catch (e) {
+      // Ocultar spinner en caso de error
       if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
+        AppGradientSpinner.hideOverlay(context);
       }
     }
   }

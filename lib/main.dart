@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'config/router/app_router.dart';
 import 'config/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_provider.dart';
-import 'features/auth/presentation/pages/login_page.dart';
-import 'features/dashboard/presentation/pages/dashboard_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const NettalcoApp());
 }
 
@@ -15,36 +15,19 @@ class NettalcoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthProvider(),
-      child: MaterialApp(
+    final authProvider = AuthProvider();
+    AppRouter.initialize(authProvider);
+
+    return ChangeNotifierProvider.value(
+      value: authProvider,
+      child: MaterialApp.router(
         title: 'Nettalco Servicios',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        home: const _AuthGate(),
+        routerConfig: AppRouter.router,
       ),
-    );
-  }
-}
-
-class _AuthGate extends StatelessWidget {
-  const _AuthGate();
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-
-    if (authProvider.isLoading && authProvider.user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: authProvider.isAuthenticated
-          ? const DashboardPage()
-          : const LoginPage(),
     );
   }
 }
