@@ -4,8 +4,8 @@ import '../../../../core/errors/app_exception.dart';
 import '../../domain/entities/perfil_info.dart';
 import '../../domain/usecases/get_perfil_info_usecase.dart';
 
-class DashboardProvider extends ChangeNotifier {
-  DashboardProvider({required GetPerfilInfoUseCase getPerfilInfoUseCase})
+class PerfilProvider extends ChangeNotifier {
+  PerfilProvider({required GetPerfilInfoUseCase getPerfilInfoUseCase})
     : _getPerfilInfoUseCase = getPerfilInfoUseCase {
     _loadPerfilSilently();
   }
@@ -52,3 +52,4 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 }
+

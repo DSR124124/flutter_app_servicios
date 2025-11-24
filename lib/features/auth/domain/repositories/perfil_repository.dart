@@ -1,5 +1,6 @@
 import '../entities/perfil_info.dart';
 
-abstract class DashboardRepository {
+abstract class PerfilRepository {
   Future<PerfilInfo> obtenerPerfil();
 }
+

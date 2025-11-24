@@ -7,8 +7,8 @@ import 'package:http/http.dart' as http;
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/errors/app_exception.dart';
 
-class DashboardRemoteDataSource {
-  DashboardRemoteDataSource({http.Client? client})
+class PerfilRemoteDataSource {
+  PerfilRemoteDataSource({http.Client? client})
     : _client = client ?? http.Client();
 
   final http.Client _client;
@@ -53,3 +53,4 @@ class DashboardRemoteDataSource {
     }
   }
 }
+

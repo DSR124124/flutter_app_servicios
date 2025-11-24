@@ -34,9 +34,18 @@ class AppStrings {
 
   // ===== Dashboard =====
   static const String dashboardTitle = 'Panel de Servicios';
-  static const String dashboardCardTitle = 'Perfil del backend de servicios';
+  static const String dashboardCardTitle = 'Mi Información';
   static const String dashboardCardSubtitle =
-      'Consulta protegida con el JWT emitido por gestión.';
+      'Tu información personal y de cuenta';
+  
+  // ===== Menu =====
+  static const String menuMiPerfil = 'Mi Perfil';
+  static const String menuServicios = 'Servicios';
+  static const String menuCerrarSesion = 'Cerrar Sesión';
+  
+  // ===== Servicios =====
+  static const String serviciosTitle = 'Mis Servicios';
+  static const String serviciosEmpty = 'Aún no tienes servicios registrados';
 
   // ===== Errors =====
   static const String networkError = 'Error de conexión';

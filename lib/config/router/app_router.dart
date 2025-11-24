@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/bloc/auth_provider.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/servicios/presentation/pages/servicios_page.dart';
 
 /// Configuración de rutas de la aplicación usando go_router
 class AppRouter {
@@ -22,9 +22,9 @@ class AppRouter {
           return '/login';
         }
 
-        // Si está autenticado y está en login, redirigir a dashboard
+        // Si está autenticado y está en login, redirigir a servicios
         if (isAuthenticated && isLoginRoute) {
-          return '/dashboard';
+          return '/servicios';
         }
 
         return null; // No redirigir
@@ -36,13 +36,13 @@ class AppRouter {
           builder: (context, state) => const LoginPage(),
         ),
         GoRoute(
-          path: '/dashboard',
-          name: 'dashboard',
-          builder: (context, state) => const DashboardPage(),
+          path: '/servicios',
+          name: 'servicios',
+          builder: (context, state) => const ServiciosPage(),
         ),
         GoRoute(
           path: '/',
-          redirect: (_, __) => '/dashboard',
+          redirect: (_, __) => '/servicios',
         ),
       ],
       errorBuilder: (context, state) => Scaffold(
@@ -63,8 +63,8 @@ class AppRouter {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => context.go('/dashboard'),
-                child: const Text('Ir al Dashboard'),
+                onPressed: () => context.go('/servicios'),
+                child: const Text('Ir a Servicios'),
               ),
             ],
           ),
