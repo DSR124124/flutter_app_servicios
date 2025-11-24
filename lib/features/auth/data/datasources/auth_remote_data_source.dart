@@ -28,6 +28,7 @@ class AuthRemoteDataSource {
             body: jsonEncode({
               'usernameOrEmail': usernameOrEmail,
               'password': password,
+              'appCode': AppConfig.appCode,
             }),
           )
           .timeout(const Duration(seconds: 5));
@@ -37,19 +38,28 @@ class AuthRemoteDataSource {
         return AuthUserModel.fromJson(data);
       }
 
+      // Intentar extraer el mensaje de error del servidor
+      String errorMessage = 'Error desconocido';
+      try {
+        final errorBody = jsonDecode(response.body) as Map<String, dynamic>;
+        errorMessage = errorBody['mensaje'] ?? errorBody['message'] ?? errorMessage;
+      } catch (_) {
+        // Si no se puede decodificar, usar mensaje por defecto
+      }
+
       if (response.statusCode == 401) {
-        throw AppException.invalidCredentials();
+        throw AppException(errorMessage);
       }
 
       if (response.statusCode == 403) {
-        throw AppException.forbidden();
+        throw AppException(errorMessage);
       }
 
       if (response.statusCode >= 500) {
         throw AppException.server();
       }
 
-      throw AppException.unknown();
+      throw AppException(errorMessage);
     } on SocketException catch (_, stackTrace) {
       throw AppException.network(stackTrace);
     } on TimeoutException catch (_, stackTrace) {

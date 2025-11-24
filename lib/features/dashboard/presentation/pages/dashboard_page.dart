@@ -69,6 +69,13 @@ class _DashboardViewState extends State<_DashboardView> {
 
       // Ocultar spinner
       AppGradientSpinner.hideOverlay(context);
+      
+      // Mostrar toast de éxito
+      AppToast.show(
+        context,
+        message: 'Sesión cerrada exitosamente',
+        type: ToastType.success,
+      );
     } catch (e) {
       // Ocultar spinner en caso de error
       if (mounted) {

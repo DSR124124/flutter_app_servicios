@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../config/theme/app_colors.dart';
@@ -21,37 +22,93 @@ class AppToast {
     ToastType.error: Icons.error_outline,
   };
 
+  static OverlayEntry? _overlayEntry;
+  static Timer? _timer;
+
   static void show(
     BuildContext context, {
     required String message,
     ToastType type = ToastType.info,
     Duration duration = const Duration(seconds: 3),
   }) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: _backgroundColors[type],
-        duration: duration,
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 150,
-          left: 16,
-          right: 16,
-        ),
-        content: Row(
-          children: [
-            Icon(_icons[type], color: AppColors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: AppColors.white),
+    // Ocultar cualquier toast anterior
+    hide();
+
+    // Obtener el padding superior seguro de la pantalla
+    final mediaQuery = MediaQuery.of(context);
+    final topPadding = mediaQuery.padding.top;
+    final safeTopMargin = topPadding > 0 ? topPadding + 16 : 16.0;
+
+    // Crear el overlay entry
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: safeTopMargin,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(0, -50 * (1 - value)),
+                child: Opacity(
+                  opacity: value,
+                  child: child,
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: _backgroundColors[type],
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_icons[type], color: AppColors.white, size: 20),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
+
+    // Insertar el overlay
+    Overlay.of(context).insert(_overlayEntry!);
+
+    // Programar la eliminación del toast
+    _timer = Timer(duration, () {
+      hide();
+    });
+  }
+
+  static void hide() {
+    _timer?.cancel();
+    _timer = null;
+    _overlayEntry?.remove();
+    _overlayEntry = null;
   }
 }
