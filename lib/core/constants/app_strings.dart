@@ -41,11 +41,26 @@ class AppStrings {
   // ===== Menu =====
   static const String menuMiPerfil = 'Mi Perfil';
   static const String menuServicios = 'Servicios';
+  static const String menuTerminos = 'Términos y Condiciones';
+  static const String menuChatbot = 'Chatbot';
   static const String menuCerrarSesion = 'Cerrar Sesión';
   
   // ===== Servicios =====
   static const String serviciosTitle = 'Mis Servicios';
   static const String serviciosEmpty = 'Aún no tienes servicios registrados';
+  
+  // ===== Términos y Condiciones =====
+  static const String terminosTitle = 'Términos y Condiciones';
+  static const String terminosLoading = 'Cargando términos y condiciones...';
+  static const String terminosError = 'Error al cargar los términos y condiciones';
+  static const String terminosVersion = 'Versión';
+  static const String terminosVigenciaDesde = 'Vigente desde';
+  static const String terminosResumenCambios = 'Resumen de cambios';
+
+  // ===== Chatbot =====
+  static const String chatbotTitle = 'Chatbot';
+  static const String chatbotLoading = 'Cargando chatbot...';
+  static const String chatbotError = 'Error al cargar el chatbot';
 
   // ===== Errors =====
   static const String networkError = 'Error de conexión';

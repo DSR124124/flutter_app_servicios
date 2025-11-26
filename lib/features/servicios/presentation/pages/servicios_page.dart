@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../config/theme/app_colors.dart';
@@ -7,50 +8,13 @@ import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../../../auth/presentation/pages/perfil_page.dart';
-import '../../data/repositories/servicios_repository_impl.dart';
-import '../../domain/usecases/actualizar_servicio_usecase.dart';
-import '../../domain/usecases/crear_servicio_usecase.dart';
-import '../../domain/usecases/eliminar_servicio_usecase.dart';
-import '../../domain/usecases/get_servicio_por_id_usecase.dart';
-import '../../domain/usecases/get_servicios_usecase.dart';
-import '../bloc/servicios_provider.dart';
-import '../widgets/servicios_list.dart';
 
 class ServiciosPage extends StatelessWidget {
   const ServiciosPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ServiciosProvider(
-        getServiciosUseCase: GetServiciosUseCase(
-          ServiciosRepositoryImpl(
-            authRepository: context.read<AuthProvider>().repository,
-          ),
-        ),
-        getServicioPorIdUseCase: GetServicioPorIdUseCase(
-          ServiciosRepositoryImpl(
-            authRepository: context.read<AuthProvider>().repository,
-          ),
-        ),
-        crearServicioUseCase: CrearServicioUseCase(
-          ServiciosRepositoryImpl(
-            authRepository: context.read<AuthProvider>().repository,
-          ),
-        ),
-        actualizarServicioUseCase: ActualizarServicioUseCase(
-          ServiciosRepositoryImpl(
-            authRepository: context.read<AuthProvider>().repository,
-          ),
-        ),
-        eliminarServicioUseCase: EliminarServicioUseCase(
-          ServiciosRepositoryImpl(
-            authRepository: context.read<AuthProvider>().repository,
-          ),
-        ),
-      ),
-      child: const _ServiciosView(),
-    );
+    return const _ServiciosView();
   }
 }
 
@@ -65,6 +29,8 @@ class _ServiciosViewState extends State<_ServiciosView> {
   int _currentPageIndex = 0; // 0 = Servicios, 1 = Perfil
 
   Future<void> _handleLogout() async {
+    if (!mounted) return;
+    
     // Mostrar spinner de carga
     AppGradientSpinner.showOverlay(
       context,
@@ -102,38 +68,33 @@ class _ServiciosViewState extends State<_ServiciosView> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    final serviciosProvider = context.watch<ServiciosProvider>();
     final user = authProvider.user;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textoHeader,
         title: Text(_currentPageIndex == 0 
             ? AppStrings.serviciosTitle 
             : AppStrings.menuMiPerfil),
       ),
       drawer: _buildDrawer(context, user),
       body: _currentPageIndex == 0
-          ? _buildServiciosBody(serviciosProvider)
+          ? _buildServiciosBody()
           : const PerfilPage(),
-      floatingActionButton: _currentPageIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                // TODO: Implementar diálogo para crear servicio
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 
   Widget _buildDrawer(BuildContext context, user) {
     return Drawer(
+      backgroundColor: AppColors.surface,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,14 +102,14 @@ class _ServiciosViewState extends State<_ServiciosView> {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.white,
                   child: Text(
                     (user?.username?.isNotEmpty == true 
                         ? user!.username![0] 
                         : 'U').toUpperCase(),
                     style: TextStyle(
                       fontSize: 24,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -157,7 +118,7 @@ class _ServiciosViewState extends State<_ServiciosView> {
                 Text(
                   user?.username ?? 'Usuario',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textoHeader,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -166,7 +127,7 @@ class _ServiciosViewState extends State<_ServiciosView> {
                   Text(
                     user!.rol,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.textoHeader.withOpacity(0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -174,9 +135,52 @@ class _ServiciosViewState extends State<_ServiciosView> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.work_outline),
-            title: const Text(AppStrings.menuServicios),
+            leading: Icon(
+              Icons.person_outline,
+              color: _currentPageIndex == 1 
+                  ? AppColors.primary 
+                  : AppColors.textSecondary,
+            ),
+            title: Text(
+              AppStrings.menuMiPerfil,
+              style: TextStyle(
+                color: _currentPageIndex == 1 
+                    ? AppColors.primary 
+                    : AppColors.textPrimary,
+                fontWeight: _currentPageIndex == 1 
+                    ? FontWeight.w600 
+                    : FontWeight.normal,
+              ),
+            ),
+            selected: _currentPageIndex == 1,
+            selectedTileColor: AppColors.primary.withOpacity(0.1),
+            onTap: () {
+              setState(() {
+                _currentPageIndex = 1;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.work_outline,
+              color: _currentPageIndex == 0 
+                  ? AppColors.primary 
+                  : AppColors.textSecondary,
+            ),
+            title: Text(
+              AppStrings.menuServicios,
+              style: TextStyle(
+                color: _currentPageIndex == 0 
+                    ? AppColors.primary 
+                    : AppColors.textPrimary,
+                fontWeight: _currentPageIndex == 0 
+                    ? FontWeight.w600 
+                    : FontWeight.normal,
+              ),
+            ),
             selected: _currentPageIndex == 0,
+            selectedTileColor: AppColors.primary.withOpacity(0.1),
             onTap: () {
               setState(() {
                 _currentPageIndex = 0;
@@ -185,26 +189,39 @@ class _ServiciosViewState extends State<_ServiciosView> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text(AppStrings.menuMiPerfil),
-            selected: _currentPageIndex == 1,
+            leading: const Icon(
+              Icons.description_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text(
+              AppStrings.menuTerminos,
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
             onTap: () {
-              setState(() {
-                _currentPageIndex = 1;
-              });
               Navigator.pop(context);
+              context.push('/terminos');
             },
           ),
-          const Divider(),
+          const Divider(
+            color: AppColors.border,
+            height: 1,
+          ),
           ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.error),
+            leading: const Icon(
+              Icons.logout,
+              color: AppColors.error,
+            ),
             title: const Text(
               AppStrings.menuCerrarSesion,
               style: TextStyle(color: AppColors.error),
             ),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              _handleLogout();
+              // Pequeño delay para que el drawer se cierre antes de mostrar el spinner
+              await Future.delayed(const Duration(milliseconds: 100));
+              if (mounted) {
+                _handleLogout();
+              }
             },
           ),
         ],
@@ -212,71 +229,79 @@ class _ServiciosViewState extends State<_ServiciosView> {
     );
   }
 
-  Widget _buildServiciosBody(ServiciosProvider serviciosProvider) {
-    return serviciosProvider.isInitialLoading
-          ? const Center(
-              child: AppLoadingSpinner(
-                message: 'Cargando servicios...',
+  Widget _buildServiciosBody() {
+    return Stack(
+      children: [
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.work_outline,
+                size: 80,
+                color: AppColors.textSecondary,
               ),
-            )
-          : serviciosProvider.error != null && serviciosProvider.servicios.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        serviciosProvider.error!,
-                        style: TextStyle(
-                          color: AppColors.error,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: serviciosProvider.loadServicios,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Reintentar'),
-                      ),
-                    ],
+              const SizedBox(height: 24),
+              Text(
+                AppStrings.serviciosEmpty,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Los servicios que tengas asignados aparecerán aquí',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 16,
+          left: 16,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Material(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () {
+                    context.push('/chatbot');
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.smart_toy,
+                      color: AppColors.white,
+                      size: 28,
+                    ),
                   ),
-                )
-              : serviciosProvider.hasServicios
-                  ? ServiciosList(servicios: serviciosProvider.servicios)
-                  : Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.work_outline,
-                            size: 80,
-                            color: AppColors.textSecondary,
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            AppStrings.serviciosEmpty,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Los servicios que tengas asignados aparecerán aquí',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    );
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Chatbot',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 

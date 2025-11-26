@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/bloc/auth_provider.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/servicios/presentation/pages/servicios_page.dart';
+import '../../features/terminos_condiciones/presentation/pages/terminos_page.dart';
+import '../../features/chatbot/presentation/pages/chatbot_page.dart';
 
 /// Configuración de rutas de la aplicación usando go_router
 class AppRouter {
@@ -39,6 +41,16 @@ class AppRouter {
           path: '/servicios',
           name: 'servicios',
           builder: (context, state) => const ServiciosPage(),
+        ),
+        GoRoute(
+          path: '/terminos',
+          name: 'terminos',
+          builder: (context, state) => const TerminosPage(),
+        ),
+        GoRoute(
+          path: '/chatbot',
+          name: 'chatbot',
+          builder: (context, state) => const ChatbotPage(),
         ),
         GoRoute(
           path: '/',

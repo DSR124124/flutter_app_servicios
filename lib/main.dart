@@ -21,7 +21,7 @@ class NettalcoApp extends StatelessWidget {
     return ChangeNotifierProvider.value(
       value: authProvider,
       child: MaterialApp.router(
-        title: 'Nettalco Servicios',
+        title: 'Nettalco',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
