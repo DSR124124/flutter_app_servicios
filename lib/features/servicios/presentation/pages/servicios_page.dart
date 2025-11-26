@@ -6,6 +6,8 @@ import '../../../../config/theme/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
+import '../../../app_update/presentation/bloc/app_update_provider.dart';
+import '../../../app_update/presentation/widgets/app_update_dialog.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../../../auth/presentation/pages/perfil_page.dart';
 
@@ -27,6 +29,41 @@ class _ServiciosView extends StatefulWidget {
 
 class _ServiciosViewState extends State<_ServiciosView> {
   int _currentPageIndex = 0; // 0 = Servicios, 1 = Perfil
+  final AppUpdateProvider _updateProvider = AppUpdateProvider();
+  bool _hasCheckedForUpdates = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Verificar actualizaciones después de que se construya el widget
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdates();
+    });
+  }
+
+  /// Verifica si hay actualizaciones disponibles
+  Future<void> _checkForUpdates() async {
+    if (_hasCheckedForUpdates) return;
+    _hasCheckedForUpdates = true;
+
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user == null) return;
+
+    await _updateProvider.checkForUpdates(
+      idUsuario: user.idUsuario,
+      token: user.token,
+    );
+
+    if (_updateProvider.hasUpdate && mounted) {
+      AppUpdateDialog.show(
+        context,
+        updateInfo: _updateProvider.availableUpdate!,
+        onDismiss: _updateProvider.dismissUpdate,
+      );
+    }
+  }
 
   Future<void> _handleLogout() async {
     if (!mounted) return;

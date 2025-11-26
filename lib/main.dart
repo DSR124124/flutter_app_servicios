@@ -24,8 +24,6 @@ class NettalcoApp extends StatelessWidget {
         title: 'Nettalco',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
         routerConfig: AppRouter.router,
       ),
     );
