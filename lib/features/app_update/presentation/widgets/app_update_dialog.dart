@@ -301,18 +301,11 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   }
 
   Future<Directory> _getDownloadDirectory() async {
-    if (Platform.isAndroid) {
-      // En Android, usar el directorio de descargas externo
-      final directory = await getExternalStorageDirectory();
-      return directory ?? await getApplicationDocumentsDirectory();
-    } else {
-      return await getApplicationDocumentsDirectory();
-    }
+    return await getTemporaryDirectory();
   }
 
   Future<void> _installApk(String filePath) async {
     try {
-      // En Android, abrir el APK para instalación
       if (Platform.isAndroid) {
         final result = await OpenFilex.open(filePath);
         
@@ -354,4 +347,3 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     }
   }
 }
-

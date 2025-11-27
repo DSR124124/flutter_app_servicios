@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../config/theme/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../shared/services/app_info_service.dart';
 import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
 import '../../../app_update/presentation/bloc/app_update_provider.dart';
@@ -30,7 +31,9 @@ class _ServiciosView extends StatefulWidget {
 class _ServiciosViewState extends State<_ServiciosView> {
   int _currentPageIndex = 0; // 0 = Servicios, 1 = Perfil
   final AppUpdateProvider _updateProvider = AppUpdateProvider();
+  final AppInfoService _appInfoService = AppInfoService();
   bool _hasCheckedForUpdates = false;
+  String _installedVersion = '';
 
   @override
   void initState() {
@@ -38,6 +41,15 @@ class _ServiciosViewState extends State<_ServiciosView> {
     // Verificar actualizaciones después de que se construya el widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkForUpdates();
+      _loadInstalledVersion();
+    });
+  }
+
+  Future<void> _loadInstalledVersion() async {
+    final version = await _appInfoService.getCurrentVersion();
+    if (!mounted) return;
+    setState(() {
+      _installedVersion = version;
     });
   }
 
@@ -117,9 +129,64 @@ class _ServiciosViewState extends State<_ServiciosView> {
             : AppStrings.menuMiPerfil),
       ),
       drawer: _buildDrawer(context, user),
-      body: _currentPageIndex == 0
-          ? _buildServiciosBody()
-          : const PerfilPage(),
+      body: Stack(
+        children: [
+          // Contenido principal
+          _currentPageIndex == 0
+              ? _buildServiciosBody()
+              : const PerfilPage(),
+          // Versión de la app solo visible en Servicios
+          if (_currentPageIndex == 0) _buildVersionBadge(),
+        ],
+      ),
+    );
+  }
+
+  /// Widget para mostrar la versión instalada de la app
+  Widget _buildVersionBadge() {
+    return Positioned(
+      bottom: 16,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.surface.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(
+              color: AppColors.border.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Versión ${_installedVersion.isEmpty ? '...' : _installedVersion}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -239,6 +306,20 @@ class _ServiciosViewState extends State<_ServiciosView> {
               context.push('/terminos');
             },
           ),
+          ListTile(
+            leading: const Icon(
+              Icons.privacy_tip_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text(
+              AppStrings.menuPrivacidad,
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/privacidad');
+            },
+          ),
           const Divider(
             color: AppColors.border,
             height: 1,
@@ -269,34 +350,39 @@ class _ServiciosViewState extends State<_ServiciosView> {
   Widget _buildServiciosBody() {
     return Stack(
       children: [
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.work_outline,
-                size: 80,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                AppStrings.serviciosEmpty,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Los servicios que tengas asignados aparecerán aquí',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+        // Contenido principal centrado con padding para la versión
+        Padding(
+          padding: const EdgeInsets.only(bottom: 60),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.work_outline,
+                  size: 80,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  AppStrings.serviciosEmpty,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Los servicios que tengas asignados aparecerán aquí',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
+        // Botón del Chatbot
         Positioned(
           top: 16,
           left: 16,

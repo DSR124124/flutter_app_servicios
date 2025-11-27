@@ -16,11 +16,16 @@ class AppConfig {
   static const String appCode = 'FLUTTER_APP_SERVICIOS';
   
   /// Versión actual de la aplicación (debe coincidir con pubspec.yaml)
-  static const String appVersion = '1.0.0';
+  /// NOTA: Esta constante solo se usa como fallback. La versión real se obtiene de PackageInfo
+  static const String appVersion = '1.0.3';
   
   /// Endpoint para verificar actualizaciones disponibles
   /// Formato: /api/verificar-actualizacion/{idUsuario}/{codigoProducto}/{versionActual}
   static const String updateCheckEndpoint = '/api/verificar-actualizacion';
+  
+  /// Endpoint para obtener la versión actual de la app desde la BD
+  /// Formato: /api/version-app/{codigoProducto}
+  static const String versionAppEndpoint = '/api/version-app';
   
   /// URL del webhook de n8n Chat
   static const String n8nChatWebhookUrl = 

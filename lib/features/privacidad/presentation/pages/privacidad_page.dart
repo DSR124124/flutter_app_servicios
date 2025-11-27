@@ -5,40 +5,40 @@ import '../../../../config/theme/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
-import '../bloc/terminos_provider.dart';
-import '../../data/repositories/terminos_repository_impl.dart';
+import '../bloc/privacidad_provider.dart';
+import '../../data/repositories/privacidad_repository_impl.dart';
 import '../../domain/usecases/get_version_actual_usecase.dart';
 
-class TerminosPage extends StatelessWidget {
-  const TerminosPage({super.key});
+class PrivacidadPage extends StatelessWidget {
+  const PrivacidadPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => TerminosProvider(
+      create: (_) => PrivacidadProvider(
         getVersionActualUseCase: GetVersionActualUseCase(
-          TerminosRepositoryImpl(),
+          PrivacidadRepositoryImpl(),
         ),
       )..loadVersionActual(),
-      child: const _TerminosView(),
+      child: const _PrivacidadView(),
     );
   }
 }
 
-class _TerminosView extends StatefulWidget {
-  const _TerminosView();
+class _PrivacidadView extends StatefulWidget {
+  const _PrivacidadView();
 
   @override
-  State<_TerminosView> createState() => _TerminosViewState();
+  State<_PrivacidadView> createState() => _PrivacidadViewState();
 }
 
-class _TerminosViewState extends State<_TerminosView> {
+class _PrivacidadViewState extends State<_PrivacidadView> {
   String? _lastErrorMessage;
 
   @override
   Widget build(BuildContext context) {
-    final terminosProvider = context.watch<TerminosProvider>();
-    final error = terminosProvider.error;
+    final privacidadProvider = context.watch<PrivacidadProvider>();
+    final error = privacidadProvider.error;
 
     if (error != null && error != _lastErrorMessage) {
       _lastErrorMessage = error;
@@ -55,7 +55,7 @@ class _TerminosViewState extends State<_TerminosView> {
         foregroundColor: AppColors.textoHeader,
         elevation: 0,
         title: const Text(
-          AppStrings.terminosTitle,
+          AppStrings.privacidadTitle,
           style: TextStyle(
             fontWeight: FontWeight.w600,
           ),
@@ -65,7 +65,7 @@ class _TerminosViewState extends State<_TerminosView> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: terminosProvider.isInitialLoading
+      body: privacidadProvider.isInitialLoading
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -73,7 +73,7 @@ class _TerminosViewState extends State<_TerminosView> {
                   AppGradientSpinner(size: 50),
                   const SizedBox(height: 16),
                   Text(
-                    AppStrings.terminosLoading,
+                    AppStrings.privacidadLoading,
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 14,
@@ -82,15 +82,15 @@ class _TerminosViewState extends State<_TerminosView> {
                 ],
               ),
             )
-          : terminosProvider.error != null && terminosProvider.versionActual == null
-              ? _buildErrorState(terminosProvider)
-              : terminosProvider.versionActual != null
-                  ? _buildContent(context, terminosProvider.versionActual!)
+          : privacidadProvider.error != null && privacidadProvider.versionActual == null
+              ? _buildErrorState(privacidadProvider)
+              : privacidadProvider.versionActual != null
+                  ? _buildContent(context, privacidadProvider.versionActual!)
                   : _buildEmptyState(),
     );
   }
 
-  Widget _buildErrorState(TerminosProvider terminosProvider) {
+  Widget _buildErrorState(PrivacidadProvider privacidadProvider) {
     return Container(
       padding: const EdgeInsets.all(24),
       child: Center(
@@ -120,7 +120,7 @@ class _TerminosViewState extends State<_TerminosView> {
             ),
             const SizedBox(height: 8),
             Text(
-              terminosProvider.error!,
+              privacidadProvider.error!,
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,
@@ -129,7 +129,7 @@ class _TerminosViewState extends State<_TerminosView> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: terminosProvider.loadVersionActual,
+              onPressed: privacidadProvider.loadVersionActual,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
@@ -164,7 +164,7 @@ class _TerminosViewState extends State<_TerminosView> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.description_outlined,
+                Icons.privacy_tip_outlined,
                 size: 48,
                 color: AppColors.primary,
               ),
@@ -220,7 +220,7 @@ class _TerminosViewState extends State<_TerminosView> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        Icons.description,
+                        Icons.privacy_tip,
                         color: AppColors.primary,
                         size: 24,
                       ),
@@ -248,13 +248,13 @@ class _TerminosViewState extends State<_TerminosView> {
                   children: [
                     _buildInfoBadge(
                       icon: Icons.tag,
-                      label: '${AppStrings.terminosVersion} ${version.numeroVersion}',
+                      label: '${AppStrings.privacidadVersion} ${version.numeroVersion}',
                       color: AppColors.secondary,
                     ),
                     if (version.fechaVigenciaInicio != null)
                       _buildInfoBadge(
                         icon: Icons.calendar_today,
-                        label: '${AppStrings.terminosVigenciaDesde} ${_formatDate(version.fechaVigenciaInicio)}',
+                        label: '${AppStrings.privacidadVigenciaDesde} ${_formatDate(version.fechaVigenciaInicio)}',
                         color: AppColors.tealDark,
                       ),
                   ],
@@ -268,7 +268,7 @@ class _TerminosViewState extends State<_TerminosView> {
           if (version.resumenCambios != null && version.resumenCambios!.isNotEmpty) ...[
             _buildSectionHeader(
               icon: Icons.change_circle_outlined,
-              title: AppStrings.terminosResumenCambios,
+              title: AppStrings.privacidadResumenCambios,
             ),
             const SizedBox(height: 12),
             Container(
@@ -408,3 +408,4 @@ class _TerminosViewState extends State<_TerminosView> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
+

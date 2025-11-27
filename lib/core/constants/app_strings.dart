@@ -42,6 +42,7 @@ class AppStrings {
   static const String menuMiPerfil = 'Mi Perfil';
   static const String menuServicios = 'Servicios';
   static const String menuTerminos = 'Términos y Condiciones';
+  static const String menuPrivacidad = 'Política de Privacidad';
   static const String menuChatbot = 'Chatbot';
   static const String menuCerrarSesion = 'Cerrar Sesión';
   
@@ -56,6 +57,14 @@ class AppStrings {
   static const String terminosVersion = 'Versión';
   static const String terminosVigenciaDesde = 'Vigente desde';
   static const String terminosResumenCambios = 'Resumen de cambios';
+
+  // ===== Política de Privacidad =====
+  static const String privacidadTitle = 'Política de Privacidad';
+  static const String privacidadLoading = 'Cargando política de privacidad...';
+  static const String privacidadError = 'Error al cargar la política de privacidad';
+  static const String privacidadVersion = 'Versión';
+  static const String privacidadVigenciaDesde = 'Vigente desde';
+  static const String privacidadResumenCambios = 'Resumen de cambios';
 
   // ===== Chatbot =====
   static const String chatbotTitle = 'Chatbot';

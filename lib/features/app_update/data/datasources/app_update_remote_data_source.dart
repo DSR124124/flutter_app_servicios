@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../../core/constants/app_config.dart';
@@ -25,7 +24,6 @@ class AppUpdateRemoteDataSource {
     required String versionActual,
   }) async {
     try {
-      // Construir URL con parámetros
       final url = '${AppConfig.backendGestionBaseUrl}${AppConfig.updateCheckEndpoint}/$idUsuario/$codigoProducto/$versionActual';
       
       final response = await _client
@@ -41,14 +39,12 @@ class AppUpdateRemoteDataSource {
       if (response.statusCode == 200) {
         final Map<String, dynamic> json = jsonDecode(response.body) as Map<String, dynamic>;
         
-        // Verificar si hay actualización
         final hayActualizacion = json['hayActualizacion'] as bool? ?? false;
         
         if (!hayActualizacion) {
-          return null; // No hay actualización
+          return null;
         }
         
-        // Convertir la respuesta al modelo
         return AppUpdateModel.fromVerificarActualizacionJson(json);
       }
 
@@ -62,7 +58,6 @@ class AppUpdateRemoteDataSource {
         throw AppException.server();
       }
 
-      // Si hay otro error, no hay actualización
       return null;
     } on SocketException catch (_, stackTrace) {
       throw AppException.network(stackTrace);
@@ -71,8 +66,6 @@ class AppUpdateRemoteDataSource {
     } on AppException {
       rethrow;
     } catch (e) {
-      // En caso de error, devolver null para no bloquear la app
-      debugPrint('Error checking for updates: $e');
       return null;
     }
   }

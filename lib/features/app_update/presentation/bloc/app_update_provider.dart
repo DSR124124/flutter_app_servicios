@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/errors/app_exception.dart';
+import '../../../../shared/services/app_info_service.dart';
 import '../../data/repositories/app_update_repository_impl.dart';
 import '../../domain/entities/app_update_info.dart';
 import '../../domain/usecases/check_for_update_usecase.dart';
@@ -9,10 +10,13 @@ import '../../domain/usecases/check_for_update_usecase.dart';
 class AppUpdateProvider extends ChangeNotifier {
   AppUpdateProvider({
     CheckForUpdateUseCase? checkForUpdateUseCase,
-  }) : _checkForUpdateUseCase = checkForUpdateUseCase ??
-            CheckForUpdateUseCase(AppUpdateRepositoryImpl());
+    AppInfoService? appInfoService,
+  })  : _checkForUpdateUseCase =
+            checkForUpdateUseCase ?? CheckForUpdateUseCase(AppUpdateRepositoryImpl()),
+        _appInfoService = appInfoService ?? AppInfoService();
 
   final CheckForUpdateUseCase _checkForUpdateUseCase;
+  final AppInfoService _appInfoService;
 
   AppUpdateInfo? _availableUpdate;
   bool _isChecking = false;
@@ -49,9 +53,12 @@ class AppUpdateProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final installedVersion = await _appInfoService.getCurrentVersion();
+
       _availableUpdate = await _checkForUpdateUseCase(
         idUsuario: idUsuario,
         token: token,
+        versionActual: installedVersion,
       );
       _hasChecked = true;
     } on AppException catch (e) {
