@@ -17,11 +17,11 @@ class RutasPage extends StatelessWidget {
     final token = authProvider.user?.token;
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rutas Disponibles'),
-        backgroundColor: AppColors.navyDark,
-        foregroundColor: AppColors.white,
-      ),
+        appBar: AppBar(
+          title: const Text('Rutas Disponibles'),
+          backgroundColor: AppColors.navyDark,
+          foregroundColor: AppColors.white,
+        ),
       body: ChangeNotifierProvider(
         create: (_) => RutasProvider(
           repository: RutasRepositoryImpl(),
@@ -96,7 +96,7 @@ class RutasPage extends StatelessWidget {
             }
 
             final bottomPadding = MediaQuery.of(context).padding.bottom;
-            
+
             return ListView.builder(
               padding: EdgeInsets.fromLTRB(
                 16,

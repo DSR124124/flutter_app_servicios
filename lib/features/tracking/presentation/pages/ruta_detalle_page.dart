@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../../shared/widgets/app_toast.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../bloc/ruta_detalle_provider.dart';
+import '../utils/map_style_helper.dart';
 import '../../data/repositories/rutas_repository_impl.dart';
 import '../../domain/entities/ruta.dart';
 
@@ -136,8 +137,8 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                 _updateMap(ruta);
                 if (ruta.puntos.length > 1 && !_hasInitialFit) {
                   Future.delayed(const Duration(milliseconds: 100), () {
-                    _fitBounds(ruta);
-                    _hasInitialFit = true;
+                  _fitBounds(ruta);
+                  _hasInitialFit = true;
                   });
                 }
               }
@@ -182,6 +183,8 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
       onMapCreated: (controller) {
         _mapController = controller;
         _isMapInitialized = true;
+        // Aplicar estilo personalizado
+        controller.setMapStyle(MapStyleHelper.getCustomMapStyle());
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
             _updateMap(ruta);
@@ -195,9 +198,11 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
       markers: _markers,
       polylines: _polylines,
       myLocationButtonEnabled: false,
-      zoomControlsEnabled: true,
+      zoomControlsEnabled: false,
       mapToolbarEnabled: false,
       tiltGesturesEnabled: false,
+      compassEnabled: false,
+      mapType: MapType.normal,
     );
   }
 
@@ -208,10 +213,10 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
     final color = ruta.colorMapa != null ? _parseColor(ruta.colorMapa!) : AppColors.blueLight;
 
     final polylines = {
-      Polyline(
-        polylineId: PolylineId('route_${ruta.idRuta}'),
-        points: ruta.puntos.map((p) => LatLng(p.latitude, p.longitude)).toList(),
-        color: color,
+        Polyline(
+          polylineId: PolylineId('route_${ruta.idRuta}'),
+          points: ruta.puntos.map((p) => LatLng(p.latitude, p.longitude)).toList(),
+          color: color,
         width: 6,
         geodesic: true,
         startCap: Cap.roundCap,
@@ -219,34 +224,34 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
         jointType: JointType.round,
       ),
     };
-
-    for (var i = 0; i < ruta.puntos.length; i++) {
-      final point = ruta.puntos[i];
+      
+      for (var i = 0; i < ruta.puntos.length; i++) {
+        final point = ruta.puntos[i];
       final isFirst = i == 0;
       final isLast = i == ruta.puntos.length - 1;
       
-      markers.add(
-        Marker(
+        markers.add(
+          Marker(
           markerId: MarkerId('stop_${ruta.idRuta}_$i'),
-          position: LatLng(point.latitude, point.longitude),
+            position: LatLng(point.latitude, point.longitude),
           icon: isFirst
               ? (_startIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen))
               : isLast
                   ? (_endIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
                   : (_stopIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure)),
-          infoWindow: InfoWindow(
-            title: point.name ?? 'Paradero ${i + 1}',
+            infoWindow: InfoWindow(
+              title: point.name ?? 'Paradero ${i + 1}',
             snippet: isFirst ? '🚩 Inicio' : isLast ? '🏁 Fin' : '🚏 Parada $i',
+            ),
           ),
-        ),
-      );
+        );
     }
 
     if (mounted) {
-      setState(() {
-        _markers = markers;
-        _polylines = polylines;
-      });
+    setState(() {
+      _markers = markers;
+      _polylines = polylines;
+    });
     }
   }
 
@@ -275,7 +280,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
           ),
           80.0,
         ),
-      );
+    );
     } catch (e) {
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
@@ -352,7 +357,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                         : null,
                   ),
                   child: ListTile(
-                    leading: CircleAvatar(
+                  leading: CircleAvatar(
                       backgroundColor: isFirst 
                           ? Colors.green 
                           : isLast 
@@ -367,24 +372,24 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                                 : Icons.location_on,
                         color: AppColors.white,
                         size: 18,
-                      ),
                     ),
-                    title: Text(
-                      punto.name ?? 'Paradero ${index + 1}',
+                  ),
+                  title: Text(
+                    punto.name ?? 'Paradero ${index + 1}',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: isFirst || isLast || isSelected 
                             ? FontWeight.w600 
                             : FontWeight.normal,
                         color: isSelected ? AppColors.blueLight : AppColors.textPrimary,
-                      ),
+                  ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: isSelected 
                         ? Icon(Icons.my_location, color: AppColors.blueLight, size: 20)
                         : null,
-                    dense: true,
+                  dense: true,
                     visualDensity: VisualDensity.compact,
                     onTap: () async {
                       if (_mapController == null || !_isMapInitialized) {
@@ -467,10 +472,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                final viajeActivo = provider.viajesActivos.isNotEmpty
-                    ? provider.viajesActivos.first.idViaje
-                    : 1;
-                context.push('/tracking/$viajeActivo');
+                context.push('/buses-activos/${ruta.idRuta}');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.blueLight,
@@ -481,7 +483,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                 ),
               ),
               child: const Text(
-                'Seguimiento',
+                'Buses Activos',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/constants/app_config.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../config/theme/app_colors.dart';
 
 class ChatbotPage extends StatefulWidget {
@@ -114,7 +115,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             --chat--message--user--border: none;
             
             /* Input */
-            --chat--textarea--height: 56px;
+            --chat--textarea--height: 40px;
             --chat--input--padding-bottom: env(safe-area-inset-bottom, 0px);
             
             /* Botón toggle */
@@ -152,27 +153,88 @@ class _ChatbotPageState extends State<ChatbotPage> {
             #n8n-chat {
                 padding-bottom: env(safe-area-inset-bottom, 0px);
             }
-            
-            /* Asegurar que el input esté visible */
-            [data-testid="chat-input"] {
-                position: sticky !important;
-                bottom: 0 !important;
-                padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
-                background-color: var(--chat--color-white) !important;
-                z-index: 1000 !important;
-            }
         }
         
         /* Ajustes generales para el contenedor del input */
         [data-testid="chat-input-container"] {
             position: sticky !important;
             bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
             background-color: var(--chat--color-white) !important;
             border-top: 1px solid var(--chat--color-light-shade-100) !important;
-            padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Formulario interno sin márgenes ni paddings */
+        [data-testid="chat-input-container"] form {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: 100% !important;
         }
         
-        /* Ocultar el banner/subtitle del header */
+        /* Input de texto compacto */
+        [data-testid="chat-input"] {
+            position: sticky !important;
+            bottom: 0 !important;
+            margin: 0 !important;
+            padding: 4px 8px !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px) !important;
+            background-color: var(--chat--color-white) !important;
+            border: none !important;
+            border-top: 1px solid var(--chat--color-light-shade-100) !important;
+            border-radius: 0 !important;
+            min-height: 36px !important;
+            max-height: 36px !important;
+            height: 36px !important;
+            font-size: 14px !important;
+            line-height: 1.2 !important;
+            z-index: 1000 !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Textarea dentro del input */
+        [data-testid="chat-input"] textarea {
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            height: 20px !important;
+            font-size: 14px !important;
+            line-height: 1.2 !important;
+            resize: none !important;
+            border: none !important;
+            background: transparent !important;
+        }
+        
+        /* Botón de envío */
+        [data-testid="chat-input"] button {
+            margin: 0 !important;
+            padding: 2px 6px !important;
+            min-width: auto !important;
+            height: 28px !important;
+        }
+        
+        /* Contenedor interno del input */
+        [data-testid="chat-input"] > * {
+            margin: 0 !important;
+        }
+        
+        /* --- AQUÍ ESTÁ EL CAMBIO PARA ELIMINAR EL HEADER --- */
+        /* Ocultar completamente el header del chat n8n */
+        .chat-header,
+        [data-testid="chat-header"],
+        header {
+            display: none !important;
+        }
+        
+        /* Ocultar el banner/subtitle del header (por si acaso queda algo) */
         [data-testid="chat-header-subtitle"],
         .chat-header-subtitle,
         header p,
@@ -235,6 +297,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textoHeader,
         elevation: 0,
+        title: const Text(AppStrings.chatbotTitle),
       ),
       body: SafeArea(
         top: false,
@@ -245,21 +308,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 ? MediaQuery.of(context).padding.bottom 
                 : 0,
           ),
-          child: Stack(
-            children: [
-              WebViewWidget(controller: _controller),
-              if (_isLoading)
-                Container(
-                  color: Colors.white,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+        child: Stack(
+          children: [
+            WebViewWidget(controller: _controller),
+            if (_isLoading)
+              Container(
+                color: Colors.white,
+                child: const Center(
+                  child: CircularProgressIndicator(),
                 ),
-            ],
+              ),
+          ],
           ),
         ),
       ),
     );
   }
 }
-

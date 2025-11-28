@@ -10,6 +10,7 @@ import '../../features/chatbot/presentation/pages/chatbot_page.dart';
 import '../../features/tracking/presentation/pages/tracking_page.dart';
 import '../../features/tracking/presentation/pages/rutas_page.dart';
 import '../../features/tracking/presentation/pages/ruta_detalle_page.dart';
+import '../../features/tracking/presentation/pages/buses_activos_page.dart';
 
 /// Configuración de rutas de la aplicación usando go_router
 class AppRouter {
@@ -26,6 +27,7 @@ class AppRouter {
                              state.matchedLocation.startsWith('/tracking/') ||
                              state.matchedLocation == '/rutas' ||
                              state.matchedLocation.startsWith('/rutas/') ||
+                             state.matchedLocation.startsWith('/buses-activos/') ||
                              state.matchedLocation == '/terminos' ||
                              state.matchedLocation == '/privacidad';
 
@@ -95,6 +97,14 @@ class AppRouter {
               tripId: tripId,
               token: token,
             );
+          },
+        ),
+        GoRoute(
+          path: '/buses-activos/:idRuta',
+          name: 'buses-activos',
+          builder: (context, state) {
+            final idRuta = int.tryParse(state.pathParameters['idRuta'] ?? '0') ?? 0;
+            return BusesActivosPage(idRuta: idRuta);
           },
         ),
         GoRoute(

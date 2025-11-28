@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_toast.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../bloc/tracking_provider.dart';
 import '../utils/map_icon_helper.dart';
+import '../utils/map_style_helper.dart';
 import '../widgets/trip_info_panel.dart';
 import '../../data/repositories/tracking_repository_impl.dart';
 import '../../domain/entities/bus_location.dart';
@@ -141,12 +142,41 @@ class _TrackingPageState extends State<TrackingPage> {
         ? LatLng(provider.busPosition!.latitude, provider.busPosition!.longitude)
         : const LatLng(-12.0464, -77.0428);
 
+    // Configuración 3D tipo navegación: tilt de 45° y zoom más cercano
+    final initialBearing = provider.busPosition?.heading ?? 0.0;
+    
     return GoogleMap(
-      initialCameraPosition: CameraPosition(target: initialPosition, zoom: 14.0),
-      minMaxZoomPreference: const MinMaxZoomPreference(10.0, 18.0),
+      initialCameraPosition: CameraPosition(
+        target: initialPosition,
+        zoom: 19.0, // Zoom muy cercano para ver el bus de cerca
+        tilt: 45.0, // Inclinación 3D tipo navegación
+        bearing: initialBearing, // Dirección basada en el heading del bus
+      ),
+      minMaxZoomPreference: const MinMaxZoomPreference(10.0, 21.0),
       onMapCreated: (controller) {
         _mapController = controller;
         _isMapInitialized = true;
+        // Aplicar estilo personalizado
+        controller.setMapStyle(MapStyleHelper.getCustomMapStyle());
+        // Centrar inmediatamente en el bus si está disponible
+        if (provider.busPosition != null) {
+          final busPos = provider.busPosition!;
+          final busLatLng = LatLng(busPos.latitude, busPos.longitude);
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (mounted && _mapController != null) {
+              _mapController!.animateCamera(
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: busLatLng,
+                    zoom: 19.0, // Zoom muy cercano
+                    tilt: 45.0,
+                    bearing: busPos.heading ?? 0.0,
+                  ),
+                ),
+              );
+            }
+          });
+        }
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) _updateMap(provider);
         });
@@ -156,8 +186,11 @@ class _TrackingPageState extends State<TrackingPage> {
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
       mapToolbarEnabled: false,
-      tiltGesturesEnabled: false,
+      tiltGesturesEnabled: true, // Habilitado para permitir ajuste manual
+      rotateGesturesEnabled: true, // Habilitado para rotar el mapa
+      compassEnabled: false,
       trafficEnabled: true,
+      mapType: MapType.normal,
     );
   }
 
@@ -217,8 +250,9 @@ class _TrackingPageState extends State<TrackingPage> {
           markerId: const MarkerId('bus'),
           position: busLatLng,
           icon: _busIcon!,
-          rotation: busPosition.heading ?? 0.0,
-          anchor: const Offset(0.5, 0.5),
+          rotation: busPosition.heading ?? 0.0, // Rotación según orientación de recorrido
+          anchor: const Offset(0.5, 0.5), // Centro del ícono
+          flat: false, // Permitir rotación 3D
           infoWindow: InfoWindow(
             title: '🚌 Bus en movimiento',
             snippet: busPosition.speed != null ? '${busPosition.speed!.toStringAsFixed(1)} km/h' : null,
@@ -228,30 +262,44 @@ class _TrackingPageState extends State<TrackingPage> {
       );
 
       if (!_hasInitialFit) {
-        if (routePoints.isNotEmpty) {
-          Future.delayed(const Duration(milliseconds: 300), () {
-            _fitBounds([
-              ...routePoints.map((p) => LatLng(p.latitude, p.longitude)),
-              busLatLng,
-            ]);
-          });
-        } else {
-          _mapController?.animateCamera(CameraUpdate.newLatLngZoom(busLatLng, 15.0));
-        }
+        // Centrar inmediatamente en el bus al iniciar con zoom muy cercano
+        _mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: busLatLng,
+              zoom: 19.0, // Zoom muy cercano para ver el bus de cerca
+              tilt: 45.0,
+              bearing: busPosition.heading ?? 0.0, // Rotación según orientación
+            ),
+          ),
+        );
         _hasInitialFit = true;
+      } else {
+        // Actualizar cámara en tiempo real con efecto 3D de navegación
+        _mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: busLatLng,
+              zoom: 19.0, // Mantener zoom cercano
+              tilt: 45.0,
+              bearing: busPosition.heading ?? 0.0, // Rotación según orientación del recorrido
+            ),
+          ),
+        );
       }
     }
 
     if (mounted) {
-      setState(() {
-        _markers = markers;
-        _polylines = polylines;
-        _lastBusPosition = busPosition;
-      });
+    setState(() {
+      _markers = markers;
+      _polylines = polylines;
+      _lastBusPosition = busPosition;
+    });
     }
   }
 
-  void _fitBounds(List<LatLng> points) {
+  /// Ajusta la cámara en modo 3D tipo navegación con tilt y bearing
+  void _fitBounds3D(List<LatLng> points, double bearing) {
     if (points.isEmpty || _mapController == null || !mounted) return;
 
     double minLat = points.first.latitude, maxLat = points.first.latitude;
@@ -264,24 +312,28 @@ class _TrackingPageState extends State<TrackingPage> {
       if (point.longitude > maxLng) maxLng = point.longitude;
     }
 
-    final latPadding = (maxLat - minLat) * 0.1;
-    final lngPadding = (maxLng - minLng) * 0.1;
-
+    final center = LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
+    
     try {
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat - latPadding, minLng - lngPadding),
-            northeast: LatLng(maxLat + latPadding, maxLng + lngPadding),
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: center,
+            zoom: 19.0, // Zoom muy cercano para ver el bus de cerca
+            tilt: 45.0, // Inclinación 3D
+            bearing: bearing, // Dirección del bus según orientación
           ),
-          80.0,
         ),
       );
     } catch (e) {
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2),
-          14.0,
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: center,
+            zoom: 17.0,
+            tilt: 45.0,
+            bearing: bearing,
+          ),
         ),
       );
     }
@@ -318,12 +370,17 @@ class _TrackingPageState extends State<TrackingPage> {
             : 16,
       ),
       child: FloatingActionButton(
-        onPressed: () {
-          final pos = provider.busPosition!;
-          _mapController?.animateCamera(
-            CameraUpdate.newLatLngZoom(
-              LatLng(pos.latitude, pos.longitude),
-              16.0,
+      onPressed: () {
+        final pos = provider.busPosition!;
+        // Re-centrar en modo 3D navegación
+        _mapController?.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(
+                target: LatLng(pos.latitude, pos.longitude),
+                zoom: 19.0, // Zoom muy cercano
+                tilt: 45.0,
+                bearing: pos.heading ?? 0.0, // Rotación según orientación
+              ),
             ),
           );
           if (mounted) {
@@ -332,10 +389,10 @@ class _TrackingPageState extends State<TrackingPage> {
               message: '🚌 Centrando en el bus...',
               type: ToastType.info,
               duration: const Duration(milliseconds: 800),
-            );
+        );
           }
-        },
-        backgroundColor: AppColors.blueLight,
+      },
+      backgroundColor: AppColors.blueLight,
         child: const Icon(Icons.my_location, color: AppColors.white, size: 28),
       ),
     );

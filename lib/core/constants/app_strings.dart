@@ -43,7 +43,6 @@ class AppStrings {
   static const String menuServicios = 'Servicios';
   static const String menuTerminos = 'Términos y Condiciones';
   static const String menuPrivacidad = 'Política de Privacidad';
-  static const String menuChatbot = 'Chatbot';
   static const String menuCerrarSesion = 'Cerrar Sesión';
   
   // ===== Servicios =====
@@ -67,7 +66,7 @@ class AppStrings {
   static const String privacidadResumenCambios = 'Resumen de cambios';
 
   // ===== Chatbot =====
-  static const String chatbotTitle = 'Chatbot';
+  static const String chatbotTitle = 'GabIA';
   static const String chatbotLoading = 'Cargando chatbot...';
   static const String chatbotError = 'Error al cargar el chatbot';
 

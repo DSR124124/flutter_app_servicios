@@ -130,8 +130,8 @@ class _ServiciosViewState extends State<_ServiciosView> {
       ),
       drawer: _buildDrawer(context, user),
       body: _currentPageIndex == 0
-          ? _buildServiciosBody()
-          : const PerfilPage(),
+              ? _buildServiciosBody()
+              : const PerfilPage(),
     );
   }
 
@@ -324,31 +324,31 @@ class _ServiciosViewState extends State<_ServiciosView> {
       children: [
         // Contenido principal centrado
         Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.work_outline,
-                size: 80,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                AppStrings.serviciosEmpty,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Los servicios que tengas asignados aparecerán aquí',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.work_outline,
+                  size: 80,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  AppStrings.serviciosEmpty,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Los servicios que tengas asignados aparecerán aquí',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
           ),
         ),
         // Botones de acción (Chatbot y Transporte)
@@ -401,7 +401,7 @@ class _ServiciosViewState extends State<_ServiciosView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Material(
-                    color: AppColors.blueLight,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                     child: InkWell(
                       onTap: () {
