@@ -7,6 +7,9 @@ import '../../features/servicios/presentation/pages/servicios_page.dart';
 import '../../features/terminos_condiciones/presentation/pages/terminos_page.dart';
 import '../../features/privacidad/presentation/pages/privacidad_page.dart';
 import '../../features/chatbot/presentation/pages/chatbot_page.dart';
+import '../../features/tracking/presentation/pages/tracking_page.dart';
+import '../../features/tracking/presentation/pages/rutas_page.dart';
+import '../../features/tracking/presentation/pages/ruta_detalle_page.dart';
 
 /// Configuración de rutas de la aplicación usando go_router
 class AppRouter {
@@ -19,6 +22,17 @@ class AppRouter {
       redirect: (context, state) {
         final isAuthenticated = authProvider.isAuthenticated;
         final isLoginRoute = state.matchedLocation == '/login';
+        final isPublicRoute = state.matchedLocation == '/chatbot' || 
+                             state.matchedLocation.startsWith('/tracking/') ||
+                             state.matchedLocation == '/rutas' ||
+                             state.matchedLocation.startsWith('/rutas/') ||
+                             state.matchedLocation == '/terminos' ||
+                             state.matchedLocation == '/privacidad';
+
+        // Permitir acceso a rutas públicas sin autenticación
+        if (isPublicRoute) {
+          return null;
+        }
 
         // Si no está autenticado y no está en login, redirigir a login
         if (!isAuthenticated && !isLoginRoute) {
@@ -57,6 +71,31 @@ class AppRouter {
           path: '/chatbot',
           name: 'chatbot',
           builder: (context, state) => const ChatbotPage(),
+        ),
+        GoRoute(
+          path: '/rutas',
+          name: 'rutas',
+          builder: (context, state) => const RutasPage(),
+        ),
+        GoRoute(
+          path: '/rutas/:idRuta',
+          name: 'ruta-detalle',
+          builder: (context, state) {
+            final idRuta = int.tryParse(state.pathParameters['idRuta'] ?? '0') ?? 0;
+            return RutaDetallePage(idRuta: idRuta);
+          },
+        ),
+        GoRoute(
+          path: '/tracking/:tripId',
+          name: 'tracking',
+          builder: (context, state) {
+            final tripId = int.tryParse(state.pathParameters['tripId'] ?? '0') ?? 0;
+            final token = state.uri.queryParameters['token'];
+            return TrackingPage(
+              tripId: tripId,
+              token: token,
+            );
+          },
         ),
         GoRoute(
           path: '/',
