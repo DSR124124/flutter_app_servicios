@@ -23,6 +23,8 @@ class TripInfoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         return DraggableScrollableSheet(
@@ -61,7 +63,12 @@ class TripInfoPanel extends StatelessWidget {
                   Expanded(
                     child: ListView(
                       controller: scrollController,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        0,
+                        16,
+                        bottomPadding > 0 ? bottomPadding + 8 : 16,
+                      ),
                       children: [
                         _buildDriverSection(),
                         const SizedBox(height: 16),

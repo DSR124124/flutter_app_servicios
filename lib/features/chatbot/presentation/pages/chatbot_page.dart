@@ -157,7 +157,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             [data-testid="chat-input"] {
                 position: sticky !important;
                 bottom: 0 !important;
-                padding-bottom: env(safe-area-inset-bottom, 8px) !important;
+                padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
                 background-color: var(--chat--color-white) !important;
                 z-index: 1000 !important;
             }
@@ -169,7 +169,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             bottom: 0 !important;
             background-color: var(--chat--color-white) !important;
             border-top: 1px solid var(--chat--color-light-shade-100) !important;
-            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px) !important;
         }
         
         /* Ocultar el banner/subtitle del header */
@@ -239,17 +239,24 @@ class _ChatbotPageState extends State<ChatbotPage> {
       body: SafeArea(
         top: false,
         bottom: true,
-        child: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (_isLoading)
-              Container(
-                color: Colors.white,
-                child: const Center(
-                  child: CircularProgressIndicator(),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom > 0 
+                ? MediaQuery.of(context).padding.bottom 
+                : 0,
+          ),
+          child: Stack(
+            children: [
+              WebViewWidget(controller: _controller),
+              if (_isLoading)
+                Container(
+                  color: Colors.white,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../config/theme/app_colors.dart';
 import '../../../../shared/widgets/app_loading_spinner.dart';
+import '../../../../shared/widgets/app_toast.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../bloc/ruta_detalle_provider.dart';
 import '../../data/repositories/rutas_repository_impl.dart';
@@ -152,11 +153,11 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
             body: Column(
               children: [
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: _buildMap(ruta),
                 ),
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: _buildInfoSection(ruta, provider),
                 ),
               ],
@@ -286,8 +287,15 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
   }
 
   Widget _buildInfoSection(Ruta ruta, RutaDetalleProvider provider) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        bottomPadding > 0 ? bottomPadding + 8 : 16,
+      ),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [
@@ -381,11 +389,11 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                     onTap: () async {
                       if (_mapController == null || !_isMapInitialized) {
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('⏳ Mapa no está listo'),
-                              duration: Duration(seconds: 1),
-                            ),
+                          AppToast.show(
+                            context,
+                            message: 'Mapa no está listo',
+                            type: ToastType.warning,
+                            duration: const Duration(seconds: 1),
                           );
                         }
                         return;
@@ -394,31 +402,12 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                       setState(() => _selectedParaderoIndex = index);
                       
                       if (mounted) {
-                        ScaffoldMessenger.of(context)
-                          ..clearSnackBars()
-                          ..showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  Icon(
-                                    isFirst ? Icons.play_arrow : isLast ? Icons.flag : Icons.location_on,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      punto.name ?? 'Paradero ${index + 1}',
-                                      style: const TextStyle(fontWeight: FontWeight.w500),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              duration: const Duration(milliseconds: 1200),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor: isFirst ? Colors.green : isLast ? Colors.red : AppColors.blueLight,
-                            ),
-                          );
+                        AppToast.show(
+                          context,
+                          message: '${isFirst ? '🚩' : isLast ? '🏁' : '📍'} ${punto.name ?? 'Paradero ${index + 1}'}',
+                          type: isFirst ? ToastType.success : isLast ? ToastType.error : ToastType.info,
+                          duration: const Duration(milliseconds: 1200),
+                        );
                       }
                       
                       _mapController!.animateCamera(

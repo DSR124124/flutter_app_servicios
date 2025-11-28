@@ -129,64 +129,9 @@ class _ServiciosViewState extends State<_ServiciosView> {
             : AppStrings.menuMiPerfil),
       ),
       drawer: _buildDrawer(context, user),
-      body: Stack(
-        children: [
-          // Contenido principal
-          _currentPageIndex == 0
-              ? _buildServiciosBody()
-              : const PerfilPage(),
-          // Versión de la app solo visible en Servicios
-          if (_currentPageIndex == 0) _buildVersionBadge(),
-        ],
-      ),
-    );
-  }
-
-  /// Widget para mostrar la versión instalada de la app
-  Widget _buildVersionBadge() {
-    return Positioned(
-      bottom: 16,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.surface.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-            border: Border.all(
-              color: AppColors.border.withOpacity(0.5),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.info_outline,
-                size: 16,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Versión ${_installedVersion.isEmpty ? '...' : _installedVersion}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: _currentPageIndex == 0
+          ? _buildServiciosBody()
+          : const PerfilPage(),
     );
   }
 
@@ -342,6 +287,33 @@ class _ServiciosViewState extends State<_ServiciosView> {
               }
             },
           ),
+          const Divider(
+            color: AppColors.border,
+            height: 1,
+          ),
+          // Versión de la app
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Versión ${_installedVersion.isEmpty ? '...' : _installedVersion}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -350,36 +322,33 @@ class _ServiciosViewState extends State<_ServiciosView> {
   Widget _buildServiciosBody() {
     return Stack(
       children: [
-        // Contenido principal centrado con padding para la versión
-        Padding(
-          padding: const EdgeInsets.only(bottom: 60),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.work_outline,
-                  size: 80,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  AppStrings.serviciosEmpty,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Los servicios que tengas asignados aparecerán aquí',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+        // Contenido principal centrado
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.work_outline,
+                size: 80,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                AppStrings.serviciosEmpty,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Los servicios que tengas asignados aparecerán aquí',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
         // Botones de acción (Chatbot y Transporte)

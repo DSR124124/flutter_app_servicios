@@ -95,8 +95,15 @@ class RutasPage extends StatelessWidget {
               );
             }
 
+            final bottomPadding = MediaQuery.of(context).padding.bottom;
+            
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                bottomPadding > 0 ? bottomPadding + 16 : 16,
+              ),
               itemCount: provider.rutas.length,
               itemBuilder: (context, index) {
                 final ruta = provider.rutas[index];

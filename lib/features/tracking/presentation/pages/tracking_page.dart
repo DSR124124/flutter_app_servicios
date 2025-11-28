@@ -288,10 +288,12 @@ class _TrackingPageState extends State<TrackingPage> {
   }
 
   Widget _buildInfoPanel(TrackingProvider provider) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    
     return Positioned(
       left: 0,
       right: 0,
-      bottom: 0,
+      bottom: bottomPadding > 0 ? bottomPadding : 0,
       child: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: TripInfoPanel(
@@ -309,36 +311,33 @@ class _TrackingPageState extends State<TrackingPage> {
   Widget _buildRecenteringFAB(TrackingProvider provider) {
     if (provider.busPosition == null) return const SizedBox.shrink();
 
-    return FloatingActionButton(
-      onPressed: () {
-        final pos = provider.busPosition!;
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(
-            LatLng(pos.latitude, pos.longitude),
-            16.0,
-          ),
-        );
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-            ..clearSnackBars()
-            ..showSnackBar(
-              const SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.directions_bus, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text('Centrando en el bus...'),
-                  ],
-                ),
-                duration: Duration(milliseconds: 800),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: AppColors.blueLight,
-              ),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).padding.bottom > 0 
+            ? MediaQuery.of(context).padding.bottom + 8 
+            : 16,
+      ),
+      child: FloatingActionButton(
+        onPressed: () {
+          final pos = provider.busPosition!;
+          _mapController?.animateCamera(
+            CameraUpdate.newLatLngZoom(
+              LatLng(pos.latitude, pos.longitude),
+              16.0,
+            ),
+          );
+          if (mounted) {
+            AppToast.show(
+              context,
+              message: '🚌 Centrando en el bus...',
+              type: ToastType.info,
+              duration: const Duration(milliseconds: 800),
             );
-        }
-      },
-      backgroundColor: AppColors.blueLight,
-      child: const Icon(Icons.my_location, color: AppColors.white, size: 28),
+          }
+        },
+        backgroundColor: AppColors.blueLight,
+        child: const Icon(Icons.my_location, color: AppColors.white, size: 28),
+      ),
     );
   }
 

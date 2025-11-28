@@ -36,7 +36,12 @@ class PerfilInfoList extends StatelessWidget {
       );
     }
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    
     return ListView.separated(
+      padding: EdgeInsets.only(
+        bottom: bottomPadding > 0 ? bottomPadding + 16 : 16,
+      ),
       itemCount: data.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
