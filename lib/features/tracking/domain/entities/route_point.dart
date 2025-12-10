@@ -1,11 +1,13 @@
 /// Punto de la ruta (paradero o punto de referencia)
 class RoutePoint {
+  final int? idPunto; // ID del paradero en la BD
   final double latitude;
   final double longitude;
   final String? name; // Nombre del paradero
   final int? order; // Orden en la ruta
 
   const RoutePoint({
+    this.idPunto,
     required this.latitude,
     required this.longitude,
     this.name,
@@ -15,6 +17,8 @@ class RoutePoint {
   factory RoutePoint.fromMap(Map<String, dynamic> map) {
     // Soporta tanto campos en inglés como en español (del backend)
     return RoutePoint(
+      idPunto: (map['idPunto'] as num?)?.toInt() ?? 
+               (map['id_punto'] as num?)?.toInt(),
       latitude: (map['latitud'] as num?)?.toDouble() ?? 
                 (map['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (map['longitud'] as num?)?.toDouble() ?? 

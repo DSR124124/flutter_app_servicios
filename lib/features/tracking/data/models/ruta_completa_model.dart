@@ -1,5 +1,3 @@
-import '../../domain/entities/ruta.dart';
-import '../../domain/entities/route_point.dart';
 import 'ruta_model.dart';
 
 class RutaCompletaModel {

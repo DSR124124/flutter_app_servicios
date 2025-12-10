@@ -2,7 +2,6 @@ import '../../../../core/errors/app_exception.dart';
 import '../../domain/entities/ruta.dart';
 import '../../domain/repositories/rutas_repository.dart';
 import '../datasources/rutas_remote_data_source.dart';
-import '../models/ruta_model.dart';
 import '../models/ruta_completa_model.dart';
 
 class RutasRepositoryImpl implements RutasRepository {

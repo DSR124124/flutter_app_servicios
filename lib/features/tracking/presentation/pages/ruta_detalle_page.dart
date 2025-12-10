@@ -10,6 +10,7 @@ import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../bloc/ruta_detalle_provider.dart';
 import '../utils/map_style_helper.dart';
 import '../../data/repositories/rutas_repository_impl.dart';
+import '../../data/datasources/google_directions_service.dart';
 import '../../domain/entities/ruta.dart';
 
 class RutaDetallePage extends StatefulWidget {
@@ -27,7 +28,6 @@ class RutaDetallePage extends StatefulWidget {
 class _RutaDetallePageState extends State<RutaDetallePage> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _startIcon;
-  BitmapDescriptor? _stopIcon;
   BitmapDescriptor? _endIcon;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
@@ -35,6 +35,8 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
   bool _hasInitialFit = false;
   Ruta? _lastRuta;
   int? _selectedParaderoIndex;
+  List<LatLng>? _optimizedRoute;
+  bool _isLoadingRoute = false;
 
   @override
   void initState() {
@@ -46,7 +48,6 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
     if (mounted) {
       setState(() {
         _startIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-        _stopIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
         _endIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       });
     }
@@ -132,13 +133,16 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
 
           if (_isMapInitialized && ruta.puntos.isNotEmpty && _lastRuta?.idRuta != ruta.idRuta) {
             _lastRuta = ruta;
+            _optimizedRoute = null;
+            _isLoadingRoute = false;
+            
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _mapController != null) {
                 _updateMap(ruta);
                 if (ruta.puntos.length > 1 && !_hasInitialFit) {
                   Future.delayed(const Duration(milliseconds: 100), () {
-                  _fitBounds(ruta);
-                  _hasInitialFit = true;
+                    _fitBounds(ruta);
+                    _hasInitialFit = true;
                   });
                 }
               }
@@ -198,6 +202,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
       markers: _markers,
       polylines: _polylines,
       myLocationButtonEnabled: false,
+      myLocationEnabled: false, // Deshabilitar capa de ubicación para evitar error de permisos
       zoomControlsEnabled: false,
       mapToolbarEnabled: false,
       tiltGesturesEnabled: false,
@@ -212,46 +217,75 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
     final markers = <Marker>{};
     final color = ruta.colorMapa != null ? _parseColor(ruta.colorMapa!) : AppColors.blueLight;
 
-    final polylines = {
+    // Cargar ruta usando Directions API segmento por segmento
+    if (_optimizedRoute == null && !_isLoadingRoute) {
+      _isLoadingRoute = true;
+      final waypoints = ruta.puntos.map((p) => LatLng(p.latitude, p.longitude)).toList();
+      
+      GoogleDirectionsService.getOptimizedRoute(waypoints).then((optimizedRoute) {
+        if (mounted) {
+          setState(() {
+            _optimizedRoute = optimizedRoute;
+            _isLoadingRoute = false;
+          });
+          _updateMap(ruta);
+        }
+      }).catchError((_) {
+        if (mounted) {
+          setState(() {
+            _optimizedRoute = waypoints;
+            _isLoadingRoute = false;
+          });
+          _updateMap(ruta);
+        }
+      });
+      return;
+    }
+
+    final polylines = <Polyline>{};
+    
+    if (_optimizedRoute != null && _optimizedRoute!.isNotEmpty) {
+      polylines.add(
         Polyline(
           polylineId: PolylineId('route_${ruta.idRuta}'),
-          points: ruta.puntos.map((p) => LatLng(p.latitude, p.longitude)).toList(),
+          points: _optimizedRoute!,
           color: color,
-        width: 6,
-        geodesic: true,
-        startCap: Cap.roundCap,
-        endCap: Cap.roundCap,
-        jointType: JointType.round,
-      ),
-    };
-      
-      for (var i = 0; i < ruta.puntos.length; i++) {
-        final point = ruta.puntos[i];
+          width: 5,
+          geodesic: true,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          jointType: JointType.round,
+        ),
+      );
+    }
+
+    for (var i = 0; i < ruta.puntos.length; i++) {
+      final punto = ruta.puntos[i];
       final isFirst = i == 0;
       final isLast = i == ruta.puntos.length - 1;
       
-        markers.add(
-          Marker(
-          markerId: MarkerId('stop_${ruta.idRuta}_$i'),
-            position: LatLng(point.latitude, point.longitude),
-          icon: isFirst
+      markers.add(
+        Marker(
+          markerId: MarkerId('paradero_${ruta.idRuta}_$i'),
+          position: LatLng(punto.latitude, punto.longitude),
+          icon: isFirst 
               ? (_startIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen))
               : isLast
                   ? (_endIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-                  : (_stopIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure)),
-            infoWindow: InfoWindow(
-              title: point.name ?? 'Paradero ${i + 1}',
-            snippet: isFirst ? '🚩 Inicio' : isLast ? '🏁 Fin' : '🚏 Parada $i',
-            ),
+                  : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: InfoWindow(
+            title: punto.name ?? 'Paradero ${i + 1}',
+            snippet: isFirst ? '🚩 Inicio' : isLast ? '🏁 Fin' : '🚏 Parada',
           ),
-        );
+        ),
+      );
     }
 
     if (mounted) {
-    setState(() {
-      _markers = markers;
-      _polylines = polylines;
-    });
+      setState(() {
+        _markers = markers;
+        _polylines = polylines;
+      });
     }
   }
 
@@ -326,7 +360,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
               Icon(Icons.location_on, size: 20, color: AppColors.blueLight),
               const SizedBox(width: 8),
               Text(
-                '${ruta.puntos.length} paraderos',
+                '${ruta.puntos.length} puntos en la ruta',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -375,7 +409,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                     ),
                   ),
                   title: Text(
-                    punto.name ?? 'Paradero ${index + 1}',
+                    punto.name ?? 'Punto ${index + 1}',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: isFirst || isLast || isSelected 
@@ -409,7 +443,7 @@ class _RutaDetallePageState extends State<RutaDetallePage> {
                       if (mounted) {
                         AppToast.show(
                           context,
-                          message: '${isFirst ? '🚩' : isLast ? '🏁' : '📍'} ${punto.name ?? 'Paradero ${index + 1}'}',
+                          message: '${isFirst ? '🚩' : isLast ? '🏁' : '📍'} ${punto.name ?? 'Punto ${index + 1}'}',
                           type: isFirst ? ToastType.success : isLast ? ToastType.error : ToastType.info,
                           duration: const Duration(milliseconds: 1200),
                         );

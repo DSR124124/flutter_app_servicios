@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../config/theme/app_colors.dart';
+import '../../domain/entities/stop_eta.dart';
 
 /// Panel flotante que muestra información del viaje
 class TripInfoPanel extends StatelessWidget {
@@ -12,6 +13,8 @@ class TripInfoPanel extends StatelessWidget {
     this.busModel,
     required this.tripStatus,
     this.estimatedArrivalMinutes,
+    this.distanceRemaining,
+    this.stopETAs = const [],
   });
 
   final String driverName;
@@ -20,6 +23,8 @@ class TripInfoPanel extends StatelessWidget {
   final String? busModel;
   final String tripStatus;
   final int? estimatedArrivalMinutes;
+  final double? distanceRemaining;
+  final List<StopETA> stopETAs;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +80,10 @@ class TripInfoPanel extends StatelessWidget {
                         _buildBusSection(),
                         const SizedBox(height: 16),
                         _buildStatusSection(),
+                        if (stopETAs.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _buildStopsSection(),
+                        ],
                       ],
                     ),
                   ),
@@ -216,7 +225,7 @@ class TripInfoPanel extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.location_on, color: AppColors.tealDark, size: 20),
+                const Icon(Icons.schedule, color: AppColors.tealDark, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   _formatETA(estimatedArrivalMinutes!),
@@ -229,19 +238,173 @@ class TripInfoPanel extends StatelessWidget {
               ],
             ),
           ],
+          if (distanceRemaining != null && distanceRemaining! > 0) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: AppColors.blueLight, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  _formatDistance(distanceRemaining!),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.blueLight,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
+  Widget _buildStopsSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.grayLighter,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Theme(
+        data: ThemeData(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          title: const Row(
+            children: [
+              Icon(Icons.timeline, color: AppColors.blueLight, size: 22),
+              SizedBox(width: 12),
+              Text(
+                'Paraderos de la ruta',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textoContent,
+                ),
+              ),
+            ],
+          ),
+          children: [
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 8),
+              itemCount: stopETAs.length,
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
+              itemBuilder: (context, index) {
+                final stop = stopETAs[index];
+                final isFirst = index == 0;
+                final isLast = index == stopETAs.length - 1;
+                
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      // Icono del paradero
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: isFirst 
+                              ? Colors.green.withOpacity(0.1) 
+                              : isLast 
+                                  ? Colors.red.withOpacity(0.1)
+                                  : AppColors.blueLight.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isFirst 
+                              ? Icons.flag 
+                              : isLast 
+                                  ? Icons.location_on 
+                                  : Icons.circle,
+                          color: isFirst 
+                              ? Colors.green 
+                              : isLast 
+                                  ? Colors.red 
+                                  : AppColors.blueLight,
+                          size: isFirst || isLast ? 20 : 12,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Nombre del paradero
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              stop.stopName,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textoContent,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (stop.distanceKm != null && stop.distanceKm! > 0) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                stop.formattedDistance,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.grayMedium,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // ETA
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getETAColor(stop.estimatedMinutes).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          stop.formattedETA,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _getETAColor(stop.estimatedMinutes),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getETAColor(int? minutes) {
+    if (minutes == null) return AppColors.grayMedium;
+    if (minutes < 5) return Colors.green;
+    if (minutes < 15) return Colors.orange;
+    return AppColors.blueLight;
+  }
+
   String _formatETA(int minutes) {
-    if (minutes < 60) return 'Llegada estimada: $minutes min';
+    if (minutes < 60) return 'Llegada en $minutes min';
     final hours = minutes ~/ 60;
     final remainingMinutes = minutes % 60;
     if (remainingMinutes == 0) {
-      return 'Llegada estimada: $hours ${hours == 1 ? 'hora' : 'horas'}';
+      return 'Llegada en $hours ${hours == 1 ? 'hora' : 'horas'}';
     }
-    return 'Llegada estimada: $hours h $remainingMinutes min';
+    return 'Llegada en $hours h $remainingMinutes min';
+  }
+
+  String _formatDistance(double kilometers) {
+    if (kilometers < 1) {
+      return 'Distancia: ${(kilometers * 1000).round()} m';
+    }
+    return 'Distancia: ${kilometers.toStringAsFixed(1)} km';
   }
 }
 

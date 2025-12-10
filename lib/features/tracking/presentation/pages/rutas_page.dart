@@ -6,21 +6,125 @@ import '../../../../config/theme/app_colors.dart';
 import '../../../../shared/widgets/app_loading_spinner.dart';
 import '../../../auth/presentation/bloc/auth_provider.dart';
 import '../bloc/rutas_provider.dart';
+import '../widgets/seleccionar_ruta_paradero_dialog.dart';
 import '../../data/repositories/rutas_repository_impl.dart';
+import '../../data/repositories/registro_ruta_repository_impl.dart';
+import '../../domain/usecases/registrar_ruta_paradero_usecase.dart';
+import '../../domain/entities/registro_ruta.dart';
 
-class RutasPage extends StatelessWidget {
+class RutasPage extends StatefulWidget {
   const RutasPage({super.key});
+
+  @override
+  State<RutasPage> createState() => _RutasPageState();
+}
+
+class _RutasPageState extends State<RutasPage> {
+  bool _dialogoMostrado = false;
+  RegistroRuta? _ultimoRegistro;
+  bool _verificandoRegistro = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _verificarRegistroPrevio();
+    });
+  }
+
+  Future<void> _verificarRegistroPrevio() async {
+    final authProvider = context.read<AuthProvider>();
+    final token = authProvider.user?.token;
+
+    if (token == null) {
+      setState(() {
+        _verificandoRegistro = false;
+      });
+      return;
+    }
+
+    try {
+      final useCase = ObtenerUltimoRegistroUseCase(RegistroRutaRepositoryImpl());
+      final registro = await useCase(token: token);
+
+      if (mounted) {
+        setState(() {
+          _ultimoRegistro = registro;
+          _verificandoRegistro = false;
+        });
+
+        if (registro == null && !_dialogoMostrado) {
+          _mostrarDialogoSeleccion();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _verificandoRegistro = false;
+        });
+        if (!_dialogoMostrado) {
+          _mostrarDialogoSeleccion();
+        }
+      }
+    }
+  }
+
+  void _mostrarDialogoSeleccion() {
+    setState(() => _dialogoMostrado = true);
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => SeleccionarRutaParaderoDialog(
+        registroPrevio: _ultimoRegistro,
+        onRegistroCompletado: () => _verificarRegistroPrevio(),
+      ),
+    ).then((_) {
+      setState(() => _dialogoMostrado = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.read<AuthProvider>();
     final token = authProvider.user?.token;
+
+    if (_verificandoRegistro) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Rutas Disponibles'),
+          backgroundColor: AppColors.navyDark,
+          foregroundColor: AppColors.white,
+        ),
+        body: const Center(
+          child: AppGradientSpinner(size: 50),
+        ),
+      );
+    }
     
     return Scaffold(
         appBar: AppBar(
           title: const Text('Rutas Disponibles'),
           backgroundColor: AppColors.navyDark,
           foregroundColor: AppColors.white,
+          actions: [
+            if (_ultimoRegistro != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Center(
+                  child: Text(
+                    'Ruta: ${_ultimoRegistro!.nombreRuta}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            IconButton(
+              icon: const Icon(Icons.edit_location),
+              tooltip: _ultimoRegistro != null 
+                  ? 'Actualizar ruta y paradero' 
+                  : 'Seleccionar ruta y paradero',
+              onPressed: _mostrarDialogoSeleccion,
+            ),
+          ],
         ),
       body: ChangeNotifierProvider(
         create: (_) => RutasProvider(
