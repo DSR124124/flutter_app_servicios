@@ -20,28 +20,13 @@ class RutasPage extends StatefulWidget {
 }
 
 class _RutasPageState extends State<RutasPage> {
-  bool _dialogoMostrado = false;
   RegistroRuta? _ultimoRegistro;
-  bool _verificandoRegistro = true;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _verificarRegistroPrevio();
-    });
-  }
-
-  Future<void> _verificarRegistroPrevio() async {
+  Future<void> _cargarRegistroPrevio() async {
     final authProvider = context.read<AuthProvider>();
     final token = authProvider.user?.token;
 
-    if (token == null) {
-      setState(() {
-        _verificandoRegistro = false;
-      });
-      return;
-    }
+    if (token == null) return;
 
     try {
       final useCase = ObtenerUltimoRegistroUseCase(RegistroRutaRepositoryImpl());
@@ -50,37 +35,34 @@ class _RutasPageState extends State<RutasPage> {
       if (mounted) {
         setState(() {
           _ultimoRegistro = registro;
-          _verificandoRegistro = false;
         });
-
-        if (registro == null && !_dialogoMostrado) {
-          _mostrarDialogoSeleccion();
-        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _verificandoRegistro = false;
+          _ultimoRegistro = null;
         });
-        if (!_dialogoMostrado) {
-          _mostrarDialogoSeleccion();
-        }
       }
     }
   }
 
-  void _mostrarDialogoSeleccion() {
-    setState(() => _dialogoMostrado = true);
+  Future<void> _mostrarDialogoSeleccion() async {
+    // Cargar el registro previo antes de mostrar el diálogo
+    await _cargarRegistroPrevio();
+    
+    if (!mounted) return;
+    
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) => SeleccionarRutaParaderoDialog(
         registroPrevio: _ultimoRegistro,
-        onRegistroCompletado: () => _verificarRegistroPrevio(),
+        onRegistroCompletado: () {
+          // Recargar el registro después de actualizar
+          _cargarRegistroPrevio();
+        },
       ),
-    ).then((_) {
-      setState(() => _dialogoMostrado = false);
-    });
+    );
   }
 
   @override
@@ -88,40 +70,15 @@ class _RutasPageState extends State<RutasPage> {
     final authProvider = context.read<AuthProvider>();
     final token = authProvider.user?.token;
 
-    if (_verificandoRegistro) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Rutas Disponibles'),
-          backgroundColor: AppColors.navyDark,
-          foregroundColor: AppColors.white,
-        ),
-        body: const Center(
-          child: AppGradientSpinner(size: 50),
-        ),
-      );
-    }
-    
     return Scaffold(
         appBar: AppBar(
           title: const Text('Rutas Disponibles'),
           backgroundColor: AppColors.navyDark,
           foregroundColor: AppColors.white,
           actions: [
-            if (_ultimoRegistro != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Center(
-                  child: Text(
-                    'Ruta: ${_ultimoRegistro!.nombreRuta}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ),
-              ),
             IconButton(
               icon: const Icon(Icons.edit_location),
-              tooltip: _ultimoRegistro != null 
-                  ? 'Actualizar ruta y paradero' 
-                  : 'Seleccionar ruta y paradero',
+              tooltip: 'Seleccionar o actualizar ruta y paradero',
               onPressed: _mostrarDialogoSeleccion,
             ),
           ],
